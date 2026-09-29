@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本地题库答题系统</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">📚 本地题库答题</div>
+  <div class="stats" id="stats">
+    <span class="chip">总题数 <b id="stTotal">-</b></span>
+    <span class="chip">已答 <b id="stAnswered">-</b></span>
+    <span class="chip">答对 <b id="stCorrect">-</b></span>
+    <span class="chip accent">正确率 <b id="stAccuracy">-</b></span>
+  </div>
+  <div class="actions">
+    <button class="btn ghost" id="btnCrawl">⬇ 爬取题库</button>
+    <button class="btn ghost" id="btnImport">⤵ 导入线上记录</button>
+    <button class="btn ghost danger" id="btnReset">↺ 重置进度</button>
+  </div>
+</header>
+
+<!-- 筛选条 -->
+<div class="toolbar" id="toolbar" hidden>
+  <div class="filters">
+    <button class="fbtn active" data-filter="all">全部</button>
+    <button class="fbtn" data-filter="unanswered">未作答</button>
+    <button class="fbtn" data-filter="wrong">答错</button>
+    <button class="fbtn" data-filter="correct">答对</button>
+  </div>
+  <div class="remote" id="remoteStats"></div>
+  <div class="hint">快捷键：B 上一题 / N 下一题 / 右键下一题 / A-D 选答案 / Enter 确认多选</div>
+</div>
+
+<main class="layout" id="layout" hidden>
+  <!-- 题卡 -->
+  <section class="qa-pane">
+    <div class="qcard" id="qcard">
+      <div class="qhead">
+        <span class="qtype" id="qType">【单选】</span>
+        <span class="qindex" id="qIndex">#1</span>
+        <span class="rate-badge" id="qRate" hidden></span>
+      </div>
+      <div class="material" id="qMaterial" hidden></div>
+      <div class="qtitle" id="qTitle"></div>
+      <div class="options" id="qOptions"></div>
+      <div class="textpanel" id="textPanel" hidden>
+        <textarea id="myText" rows="3" placeholder="输入你的答案（可不填），然后点击下方按钮对照参考答案"></textarea>
+        <button class="btn primary" id="btnTextConfirm">对照参考答案（Enter）</button>
+      </div>
+      <div class="selfjudge" id="selfJudge" hidden>
+        <span>你答对了吗？</span>
+        <button class="btn" id="btnJudgeRight">✅ 答对了</button>
+        <button class="btn" id="btnJudgeWrong">❌ 答错了</button>
+      </div>
+      <div class="multibar" id="multiBar" hidden>
+        <button class="btn primary" id="btnConfirm" disabled>确认答案（Enter）</button>
+      </div>
+      <div class="result" id="qResult" hidden>
+        <div class="result-line" id="resultLine"></div>
+        <div class="analysis" id="qAnalysis" hidden></div>
+        <div class="mynote" id="qMyNote" hidden></div>
+        <div class="result-ops">
+          <button class="btn copy" id="btnCopy">📋 复制本题</button>
+          <span class="copied-tip" id="copyTip"></span>
+        </div>
+      </div>
+      <div class="navbar">
+        <button class="btn ghost" id="btnPrev">← 上一题 (B)</button>
+        <span class="nav-pos" id="navPos"></span>
+        <button class="btn primary" id="btnNext">下一题 (N) →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 答题卡 -->
+  <aside class="palette-pane">
+    <div class="palette-title">答题卡</div>
+    <div class="palette-legend">
+      <span><i class="dot unanswered"></i>未答</span>
+      <span><i class="dot correct"></i>答对</span>
+      <span><i class="dot wrong"></i>答错</span>
+    </div>
+    <div class="palette" id="palette"></div>
+  </aside>
+</main>
+
+<!-- 空状态 / 爬取面板 -->
+<section class="crawl-panel" id="crawlPanel" hidden>
+  <div class="crawl-card">
+    <h2>本地还没有题库</h2>
+    <p class="desc">点击下方按钮，将从 hbjcrz.com 爬取全部题目、选项、解析与全站错误率，保存到本地 <code>data/bank.json</code>。</p>
+    <div class="form-row">
+      <label>分类 cat_id <input type="number" id="crawlCatId" value="18"></label>
+      <label class="chk"><input type="checkbox" id="crawlNotes" checked> 同时抓取笔记与全站错误率（较慢，约每题一次请求）</label>
+    </div>
+    <div class="form-row">
+      <button class="btn primary big" id="btnStartCrawl">开始爬取</button>
+      <button class="btn big" id="btnCancelCrawl" hidden>取消爬取</button>
+    </div>
+    <div class="crawl-progress" id="crawlProgress" hidden>
+      <div class="phase"><span id="crawlPhase"></span> <span id="crawlCount"></span></div>
+      <div class="bar"><div class="bar-inner" id="crawlBar"></div></div>
+      <pre class="crawl-log" id="crawlLog"></pre>
+    </div>
+    <p class="tip">若接口需要登录态：登录网站后，把请求 Cookie 填入项目根目录 <code>config.json</code> 的 <code>cookie</code> 字段，再重启服务。</p>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
