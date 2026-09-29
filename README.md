@@ -2,30 +2,30 @@
 
 把 hbjcrz.com 题库（题目、选项、解析、全站错误率、线上作答记录）爬到本地，离线答题、统计正确率，并支持与 `caishi.js` 油猴脚本完全一致的「带颜色富文本」复制格式。
 
-## 使用方法
-
-```bash
-# 需要 Node 18+（零依赖）
-node server.js
-```
-
-打开 http://localhost:8899 ，点击「开始爬取」即可（默认 cat_id=18，共 813 题）。
+**在线使用：<https://cprzanswer.netlify.app>**
 
 ## 快速开始
+
+### 直接使用（推荐）
+
+打开 <https://cprzanswer.netlify.app> 即可在线答题，进度自动保存在浏览器本地（localStorage），刷新/重开浏览器都不丢失。
+
+### 本地运行
 
 ```bash
 git clone git@github.com:graylogo/CprzAnswer.git
 cd CprzAnswer
-cp config.example.json config.json   # 填入你的 token
-node server.js
+node server.js        # 需要 Node 18+（零依赖）
 ```
 
-登录态说明：登录网站后，从浏览器请求头中复制 `token` 的值，填入 `config.json`：
+打开 http://localhost:8899 ，点击「开始爬取」即可（默认 cat_id=18）。
+
+登录态说明：登录网站后，从浏览器请求头中复制 `token` 的值，填入 `config.json`（模板见 `config.example.json`）：
 
 ```json
 {
   "cat_id": 18,
-  "token": "粘贴 token（如 ffe3b484-…）"
+  "token": "粘贴你的 token"
 }
 ```
 
@@ -41,33 +41,43 @@ node server.js
 - 快捷键：`B` 上一题、`N` 下一题、右键下一题、`A-D` 选答案、`Enter` 确认多选
 - 进度保存在浏览器 localStorage，刷新不丢失
 
-## 部署到互联网（纯静态，免费）
+## 自动部署（Netlify）
 
-题库可打包为纯静态站点（数据内嵌 `data.js`，无需任何后端），答题进度保存在浏览器 localStorage，刷新/重开浏览器都不丢失：
+本仓库已连接 Netlify，`git push` 到 `main` 分支后自动构建上线：
+
+- 构建命令：`node build_static.js`
+- 发布目录：`dist`
 
 ```bash
-node build_static.js   # 生成 dist/ 目录
+git add . && git commit -m "更新题库" && git push
+# Netlify 自动重新构建并部署到 https://cprzanswer.netlify.app
 ```
 
-把 `dist/` 部署到任意静态托管即可。推荐（都免费、免运维）：
+## 更新题库
+
+重新运行 `node server.js` 爬取（token 过期先更新 `config.json`），提交 `data/bank.json` 后 push，Netlify 会自动用最新数据构建上线。
+
+注意：进度存在浏览器里，与域名绑定，换域名后旧进度不迁移。
+
+## 其他部署方式
+
+`node build_static.js` 生成纯静态站点（数据内嵌 `data.js`，无需后端），`dist/` 可部署到任意静态托管：
 
 | 服务 | 方式 | 特点 |
 |---|---|---|
-| **Netlify Drop** | 打开 app.netlify.com/drop，把 `dist` 文件夹拖进去 | 最简单，30 秒上线，无需注册即可先预览 |
+| **Netlify** | 连接 Git 仓库自动部署（本项目在用） | push 即上线 |
 | **Cloudflare Pages** | Dashboard 上传或连接 Git 仓库 | 速度快，国内访问相对友好 |
 | **GitHub Pages** | push 到仓库后开启 Pages | 需仓库公开（注意题库版权，建议私有方案） |
 | **Vercel** | `npx vercel dist` 或连接 Git | 简单，免费额度充足 |
-
-更新题库：重新运行 `node server.js` 爬取（token 过期先更新 `config.json`），再 `node build_static.js`，重新上传 `dist/` 即可。注意：进度存在浏览器里，与域名绑定，换域名后旧进度不迁移。
 
 ## 文件结构
 
 ```
 server.js          # 零依赖 Node 服务：爬取 + API + 静态页面
-config.json        # cat_id 与 token 配置
+config.example.json# 配置模板（cat_id 与 token）
 public/            # 答题页面（本地版与静态版共用）
 build_static.js    # 生成纯静态站点到 dist/
 dist/              # 可直接托管的静态站点（自动生成）
-data/bank.json     # 爬取到的题库（自动生成）
+data/bank.json     # 爬取到的题库
 doc/               # 接口样例数据
 ```
