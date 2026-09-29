@@ -3,8 +3,6 @@ config.json
 doc/token.txt
 
 # 自动生成内容
-data/
-dist/
 node_modules/
 
 # 系统文件
