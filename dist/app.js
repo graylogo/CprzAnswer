@@ -630,6 +630,71 @@ $('btnReset').addEventListener('click', () => {
   toast('进度已重置');
 });
 
+/* ==================== 进度导入/导出（换浏览器用） ==================== */
+function exportProgress() {
+  if (!progress.answers || !Object.keys(progress.answers).length) {
+    toast('暂无答题记录可导出');
+    return;
+  }
+  const payload = {
+    app: 'cprz_answer',
+    version: 1,
+    lsKey: LS_KEY,
+    exportedAt: new Date().toISOString(),
+    answers: progress.answers,
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cprz_progress_${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`已导出 ${Object.keys(progress.answers).length} 条进度`);
+}
+
+function importProgressFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || typeof data !== 'object' || !data.answers || typeof data.answers !== 'object') {
+        toast('文件格式不正确：缺少 answers 字段');
+        return;
+      }
+      const cnt = Object.keys(data.answers).length;
+      const oldCnt = Object.keys(progress.answers).length;
+      const msg = oldCnt
+        ? `确定用该文件覆盖本地 ${oldCnt} 条进度吗？（文件含 ${cnt} 条，原有数据将丢失）`
+        : `确定导入 ${cnt} 条进度吗？`;
+      if (!confirm(msg)) return;
+      progress = { answers: data.answers };
+      saveProgress();
+      cur = 0;
+      applyFilter();
+      renderAll();
+      toast(`已导入 ${cnt} 条进度`);
+    } catch (e) {
+      toast('文件解析失败：' + e.message);
+    }
+  };
+  reader.onerror = () => toast('文件读取失败');
+  reader.readAsText(file);
+}
+
+$('btnExport').addEventListener('click', exportProgress);
+$('btnImportProgress').addEventListener('click', () => $('fileImport').click());
+$('fileImport').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  importProgressFile(f);
+  e.target.value = ''; // 允许重复导入同一文件
+});
+
 document.querySelectorAll('.fbtn').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.fbtn').forEach((b) => b.classList.remove('active'));
